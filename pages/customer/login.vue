@@ -38,8 +38,8 @@
                   <div class="col-12">
                     <button class="btn btn-warning shadow-sm rounded-sm px-4 w-100" type="submit">LOGIN</button>
                   </div>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         </div>
@@ -53,67 +53,51 @@
 </template>
 
 <script>
-  export default {
+export default {
+  // Middleware untuk mengecek autentikasi
+  middleware: "authenticated",
 
-    //middleware
-    middleware: 'authenticated',
+  // Layout yang digunakan
+  layout: "default",
 
-    //layout
-    layout: 'default',
+  // Metadata halaman
+  head() {
+    return {
+      title: "Login - Customer",
+    };
+  },
 
-    //meta
-    head() {
-      return {
-        title: 'Login - Customer',
+  data() {
+    return {
+      user: {
+        email: "",
+        password: "",
+      },
+      validation: {}, // Default sebagai objek kosong untuk menghindari error undefined
+    };
+  },
+
+  methods: {
+    async login() {
+      try {
+        await this.$auth.loginWith("customer", {
+          data: {
+            email: this.user.email,
+            password: this.user.password,
+          },
+        });
+
+        // Fetching data keranjang setelah login
+        this.$store.dispatch("web/cart/getCartsData");
+        this.$store.dispatch("web/cart/getCartPrice");
+
+        // Redirect ke dashboard pelanggan
+        this.$router.push({ name: "customer-dashboard" });
+      } catch (error) {
+        // Pastikan error memiliki response
+        this.validation = error.response?.data || { message: "Terjadi kesalahan saat login." };
       }
     },
-
-    data() {
-      return {
-        //state user
-        user: {
-          email: '',
-          password: '',
-        },
-        //validation
-        validation: []
-      }
-    },
-
-    methods: {
-      async login() {
-
-        await this.$auth.loginWith('customer', {
-            data: {
-              email: this.user.email,
-              password: this.user.password
-            }
-          })
-
-          .then(() => {
-
-            //fething carts on Rest API
-            this.$store.dispatch('web/cart/getCartsData')
-            this.$store.dispatch('web/cart/getCartPrice')
-
-            //redirect
-            this.$router.push({
-              name: 'customer-dashboard'
-            })
-
-          })
-
-          .catch(error => {
-            //assign validation
-            this.validation = error.response.data
-          })
-      }
-
-    }
-
-  }
+  },
+};
 </script>
-
-<style>
-
-</style>
