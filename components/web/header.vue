@@ -4,10 +4,10 @@
       <div class="container-fluid">
         <div class="row align-items-center">
           <div class="col-lg-3 col-sm-4 col-md-4 col-5"> 
-              <nuxt-link to="/" class="brand-wrap" data-abc="true">
-                <img src="/images/xiaomi.png" width="35" class="bg-light p-2 rounded">
-                <span class="logo">MI STORE</span>
-              </nuxt-link>
+            <nuxt-link to="/" class="brand-wrap" data-abc="true">
+              <img src="/images/xiaomi.png" width="35" class="bg-light p-2 rounded">
+              <span class="logo">MI STORE</span>
+            </nuxt-link>
           </div>
           <div class="col-lg-4 col-xl-5 col-sm-8 col-md-4 d-none d-md-block">
             <div class="search-wrap">
@@ -74,68 +74,81 @@
 </template>
 
 <script>
-  export default {
+export default {
+  async fetch() {
+    // Fetching categories
+    await this.$store.dispatch('web/category/getCategoriesData')
 
-    //hook "fetch"
-    async fetch() {
+    // Fetching cart data if logged in
+    if (this.$auth.loggedIn && this.$auth.strategy.name == 'customer') {
+      await this.$store.dispatch('web/cart/getCartsData')
+      await this.$store.dispatch('web/cart/getCartPrice')
+    }
+  },
 
-      //fething sliders on Rest API
-      await this.$store.dispatch('web/category/getCategoriesData')
-
-      if(this.$auth.loggedIn && this.$auth.strategy.name == 'customer') {
-
-        //fething carts on Rest API
-        await this.$store.dispatch('web/cart/getCartsData')
-        await this.$store.dispatch('web/cart/getCartPrice')
-
-      }
+  computed: {
+    // Categories data from Vuex store
+    categories() {
+      return this.$store.state.web.category.categories
     },
 
-    //computed
-    computed: {
-        
-      //categories
-      categories() {
-        return this.$store.state.web.category.categories
-      },
-
-      //cartPrice
-      cartPrice() {
-        return this.$store.state.web.cart.cartPrice
-      },
-
-      //cartTotal
-      cartTotal() {
-        return this.$store.state.web.cart.carts.length
-      },
+    // Cart total price from Vuex store
+    cartPrice() {
+      return this.$store.state.web.cart.cartPrice
     },
 
-    //data function
-    data() {
-      return {
-
-        //state search
-        search: ''
-      }
+    // Cart total items count from Vuex store
+    cartTotal() {
+      return this.$store.state.web.cart.carts.length
     },
+  },
 
-    //method
-    methods: {
-      searchData() {
+  data() {
+    return {
+      // Search input value
+      search: ''
+    }
+  },
+
+  methods: {
+    // Search method that triggers on enter or button click
+    searchData() {
+      if (this.search.trim()) {
         this.$router.push({
           name: 'search',
           query: {
             q: this.search
           }
-        });
+        })
       }
-    }
+    },
 
+    // Format price function (you can modify this based on your needs)
+    formatPrice(price) {
+      return price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })
+    }
   }
+}
 </script>
 
 <style scoped>
-  .btn {
-    font-size: initial;
-  }
+.search-wrap {
+  position: relative;
+}
+
+.search-form {
+  border-radius: 0.5rem;
+}
+
+.search-button {
+  border-radius: 0.5rem;
+}
+
+.navbar-nav .nav-link {
+  padding: 0.5rem 1rem;
+}
+
+.navbar-toggler {
+  border: none;
+}
 </style>
